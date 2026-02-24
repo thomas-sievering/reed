@@ -1,1 +1,1 @@
-chore: scaffold tauri v2 project structure
+feat(markdown): add markdown renderer with gfm edge-case handling

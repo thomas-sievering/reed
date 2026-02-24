@@ -1,18 +1,20 @@
 [
   {
     "id": "R-001",
-    "status": "running",
+    "status": "done",
     "prompt": "Scaffold the Tauri v2 project structure for \"reed\". Create package.json with @tauri-apps/cli@^2 and @tauri-apps/api@^2 as devDependencies (no runtime deps). Create src-tauri/Cargo.toml with tauri v2 (features: [\"tray-icon\"] not needed, just default), pulldown-cmark (with GFM extensions via features), syntect, notify v6, serde/serde_json, dirs. Create src-tauri/tauri.conf.json with: identifier \"com.reed.app\", app name \"reed\", window defaults 900x700, min 400x300, title \"reed\", frontendDist \"../ui\", no devUrl needed for now. Create stub src-tauri/src/main.rs with an empty Tauri app that compiles. Create ui/index.html with a basic HTML5 document, ui/style.css (empty), ui/main.js (empty). Create a .gitignore ignoring node_modules/, target/, dist/. Run `npm install` and verify `cargo check --manifest-path src-tauri/Cargo.toml` compiles. Read spec.md for full project structure details.",
     "blocked_by": [],
     "iterations": 1,
-    "created": "2026-02-24T14:22:39Z"
+    "created": "2026-02-24T14:22:39Z",
+    "completed": "2026-02-24T14:27:57Z",
+    "commit": "3885614"
   },
   {
     "id": "R-003",
-    "status": "queued",
+    "status": "running",
     "prompt": "Implement the markdown parsing module in src-tauri/src/markdown.rs. Read spec.md for full requirements. Create a function `render_markdown(path: \u0026str) -\u003e Result\u003cString, String\u003e` that: reads a file from disk, converts markdown to HTML using pulldown-cmark with GFM extensions enabled (tables, strikethrough, task lists, footnotes). For now, skip syntect highlighting (that's a separate task). Handle edge cases from spec: non-UTF8 files return an error message HTML, empty files return muted \"Empty file\" HTML, files \u003e1MB should set a flag to skip syntax highlighting later. Export the module from main.rs with `mod markdown;`. Ensure cargo check passes.",
     "blocked_by": [],
-    "iterations": 0,
+    "iterations": 1,
     "created": "2026-02-24T14:22:39Z"
   },
   {
