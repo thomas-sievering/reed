@@ -11,3 +11,4 @@ notify = "6"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 dirs = "5"
+rfd = "0.15"

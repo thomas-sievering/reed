@@ -1,1 +1,1 @@
-feat(markdown): add syntect highlighting for fenced code blocks
+feat(backend): implement tauri commands and cli integration

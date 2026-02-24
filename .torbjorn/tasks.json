@@ -21,18 +21,21 @@
   },
   {
     "id": "R-005",
-    "status": "running",
+    "status": "done",
     "prompt": "Add syntax highlighting to the markdown pipeline using syntect. Read spec.md for requirements. In src-tauri/src/markdown.rs, integrate syntect to highlight fenced code blocks. Use pulldown-cmark's event iterator to detect CodeBlock events, extract the language tag, and use syntect's `html::highlighted_html_for_string()` with a built-in theme (use \"base16-ocean.dark\" or similar dark theme — the CSS will handle light/dark switching). Generate inline CSS styles (no class-based highlighting). For files \u003e1MB, skip syntax highlighting for performance (just wrap code in `\u003cpre\u003e\u003ccode\u003e`). Ensure cargo check passes.",
     "blocked_by": [],
     "iterations": 1,
-    "created": "2026-02-24T14:22:39Z"
+    "created": "2026-02-24T14:22:39Z",
+    "completed": "2026-02-24T14:31:24Z",
+    "commit": "f37bbd5"
   },
   {
     "id": "R-007",
-    "status": "queued",
+    "status": "running",
     "prompt": "Implement Tauri commands and wire up the backend. Read spec.md for behavior details. In src-tauri/src/main.rs: (1) Add a `render_file` Tauri command that takes a file path string, calls markdown::render_markdown(), and returns the HTML string. (2) Add an `open_file_dialog` Tauri command that opens a native file dialog filtered to .md/.markdown files and returns the selected path (use tauri::api::dialog or rfd crate). (3) Handle CLI args: in the tauri::Builder setup closure, check std::env::args() for a file path argument, and if present, emit a \"file-opened\" event with the path. (4) Set the window title to \"filename — reed\" format when a file is opened. Register all commands with generate_handler![]. Ensure cargo check passes.",
     "blocked_by": [],
-    "iterations": 0,
+    "iterations": 2,
+    "last_error": "agent hung (no heartbeat for 300s)",
     "created": "2026-02-24T14:22:39Z"
   },
   {
