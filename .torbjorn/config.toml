@@ -1,0 +1,13 @@
+[models]
+escalation = ["codex", "sonnet", "opus"]
+retries_per_model = 2
+
+[loop]
+max_iterations = 50
+hang_timeout_seconds = 300
+
+[backpressure]
+commands = []
+
+[git]
+auto_commit = true
