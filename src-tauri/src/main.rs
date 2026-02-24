@@ -35,12 +35,16 @@ fn render_file(path: String) -> Result<String, String> {
 }
 
 #[tauri::command]
-fn open_file_dialog() -> Result<Option<String>, String> {
-    let file_path = rfd::FileDialog::new()
-        .add_filter("Markdown", &["md", "markdown"])
-        .pick_file();
+async fn open_file_dialog(app_handle: AppHandle) -> Result<Option<String>, String> {
+    use tauri_plugin_dialog::DialogExt;
 
-    Ok(file_path.map(|p| p.to_string_lossy().to_string()))
+    let file_path = app_handle
+        .dialog()
+        .file()
+        .add_filter("Markdown", &["md", "markdown"])
+        .blocking_pick_file();
+
+    Ok(file_path.map(|p| p.as_path().unwrap().to_string_lossy().to_string()))
 }
 
 #[tauri::command]
@@ -97,6 +101,7 @@ fn quit_app(app_handle: AppHandle) {
 
 fn main() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_dialog::init())
         .manage(Mutex::new(FileWatcher::new()))
         .setup(|app| {
             let args: Vec<String> = env::args().collect();

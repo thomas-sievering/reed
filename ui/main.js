@@ -1,6 +1,6 @@
-import { invoke } from "@tauri-apps/api/core";
-import { listen } from "@tauri-apps/api/event";
-import { getCurrentWindow } from "@tauri-apps/api/window";
+const { invoke } = window.__TAURI__.core;
+const { listen } = window.__TAURI__.event;
+const { getCurrentWindow } = window.__TAURI__.window;
 
 const THEME_KEY = "reed-theme";
 const DEFAULT_THEME = "dark";
@@ -160,36 +160,6 @@ async function manualReload() {
   await renderPath(currentFilePath, { preserveScroll: true });
 }
 
-function extractDroppedPath(event) {
-  const files = event.dataTransfer?.files;
-  if (files && files.length > 0) {
-    const dropped = files[0];
-    if (typeof dropped.path === "string" && dropped.path.length > 0) {
-      return dropped.path;
-    }
-  }
-
-  const uriList = event.dataTransfer?.getData("text/uri-list");
-  if (!uriList) {
-    return null;
-  }
-
-  const first = uriList.split("\n").find((line) => line && !line.startsWith("#"));
-  if (!first) {
-    return null;
-  }
-
-  try {
-    const url = new URL(first.trim());
-    if (url.protocol !== "file:") {
-      return null;
-    }
-    return decodeURIComponent(url.pathname.replace(/^\/+/, ""));
-  } catch {
-    return null;
-  }
-}
-
 function registerShortcuts() {
   window.addEventListener("keydown", (event) => {
     const cmdOrCtrl = event.metaKey || event.ctrlKey;
@@ -227,32 +197,24 @@ function registerShortcuts() {
 }
 
 function registerDragAndDrop() {
+  // Tauri v2 drag-drop event
   if (typeof appWindow.onDragDropEvent === "function") {
-    void appWindow.onDragDropEvent((event) => {
+    appWindow.onDragDropEvent((event) => {
       if (event.payload.type !== "drop") {
         return;
       }
 
-      const [path] = event.payload.paths;
-      if (typeof path !== "string" || !isMarkdownPath(path)) {
+      const paths = event.payload.paths;
+      if (!paths || paths.length === 0) {
         return;
       }
-      void renderPath(path);
+
+      const path = paths[0];
+      if (typeof path === "string" && isMarkdownPath(path)) {
+        void renderPath(path);
+      }
     });
   }
-
-  window.addEventListener("dragover", (event) => {
-    event.preventDefault();
-  });
-
-  window.addEventListener("drop", (event) => {
-    event.preventDefault();
-    const path = extractDroppedPath(event);
-    if (!path || !isMarkdownPath(path)) {
-      return;
-    }
-    void renderPath(path);
-  });
 }
 
 function registerTopHoverReveal() {
@@ -306,7 +268,6 @@ async function init() {
     void toggleTheme();
   });
 
-  attachOpenButtonHandler();
   registerShortcuts();
   registerDragAndDrop();
   registerTopHoverReveal();
