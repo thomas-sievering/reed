@@ -1,1 +1,1 @@
-feat(markdown): add markdown renderer with gfm edge-case handling
+feat(markdown): add syntect highlighting for fenced code blocks

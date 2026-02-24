@@ -11,18 +11,20 @@
   },
   {
     "id": "R-003",
-    "status": "running",
+    "status": "done",
     "prompt": "Implement the markdown parsing module in src-tauri/src/markdown.rs. Read spec.md for full requirements. Create a function `render_markdown(path: \u0026str) -\u003e Result\u003cString, String\u003e` that: reads a file from disk, converts markdown to HTML using pulldown-cmark with GFM extensions enabled (tables, strikethrough, task lists, footnotes). For now, skip syntect highlighting (that's a separate task). Handle edge cases from spec: non-UTF8 files return an error message HTML, empty files return muted \"Empty file\" HTML, files \u003e1MB should set a flag to skip syntax highlighting later. Export the module from main.rs with `mod markdown;`. Ensure cargo check passes.",
     "blocked_by": [],
     "iterations": 1,
-    "created": "2026-02-24T14:22:39Z"
+    "created": "2026-02-24T14:22:39Z",
+    "completed": "2026-02-24T14:29:47Z",
+    "commit": "9113728"
   },
   {
     "id": "R-005",
-    "status": "queued",
+    "status": "running",
     "prompt": "Add syntax highlighting to the markdown pipeline using syntect. Read spec.md for requirements. In src-tauri/src/markdown.rs, integrate syntect to highlight fenced code blocks. Use pulldown-cmark's event iterator to detect CodeBlock events, extract the language tag, and use syntect's `html::highlighted_html_for_string()` with a built-in theme (use \"base16-ocean.dark\" or similar dark theme — the CSS will handle light/dark switching). Generate inline CSS styles (no class-based highlighting). For files \u003e1MB, skip syntax highlighting for performance (just wrap code in `\u003cpre\u003e\u003ccode\u003e`). Ensure cargo check passes.",
     "blocked_by": [],
-    "iterations": 0,
+    "iterations": 1,
     "created": "2026-02-24T14:22:39Z"
   },
   {
