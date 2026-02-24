@@ -1,10 +1,13 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 mod markdown;
+mod watcher;
 
 use std::env;
 use std::path::Path;
-use tauri::{Emitter, Manager, Window};
+use std::sync::Mutex;
+use tauri::{AppHandle, Emitter, Manager, State, Window};
+use watcher::FileWatcher;
 
 #[tauri::command]
 fn render_file(path: String) -> Result<String, String> {
@@ -27,8 +30,26 @@ fn set_window_title(window: Window, filename: String) -> Result<(), String> {
         .map_err(|e| e.to_string())
 }
 
+#[tauri::command]
+fn start_watching(
+    path: String,
+    watcher: State<Mutex<FileWatcher>>,
+    app_handle: AppHandle,
+) -> Result<(), String> {
+    let watcher = watcher.lock().unwrap();
+    watcher.watch_file(path, app_handle)
+}
+
+#[tauri::command]
+fn stop_watching(watcher: State<Mutex<FileWatcher>>) -> Result<(), String> {
+    let watcher = watcher.lock().unwrap();
+    watcher.stop_watching();
+    Ok(())
+}
+
 fn main() {
     tauri::Builder::default()
+        .manage(Mutex::new(FileWatcher::new()))
         .setup(|app| {
             // Check for CLI arguments
             let args: Vec<String> = env::args().collect();
@@ -60,7 +81,9 @@ fn main() {
         .invoke_handler(tauri::generate_handler![
             render_file,
             open_file_dialog,
-            set_window_title
+            set_window_title,
+            start_watching,
+            stop_watching
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

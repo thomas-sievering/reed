@@ -31,19 +31,22 @@
   },
   {
     "id": "R-007",
-    "status": "running",
+    "status": "done",
     "prompt": "Implement Tauri commands and wire up the backend. Read spec.md for behavior details. In src-tauri/src/main.rs: (1) Add a `render_file` Tauri command that takes a file path string, calls markdown::render_markdown(), and returns the HTML string. (2) Add an `open_file_dialog` Tauri command that opens a native file dialog filtered to .md/.markdown files and returns the selected path (use tauri::api::dialog or rfd crate). (3) Handle CLI args: in the tauri::Builder setup closure, check std::env::args() for a file path argument, and if present, emit a \"file-opened\" event with the path. (4) Set the window title to \"filename — reed\" format when a file is opened. Register all commands with generate_handler![]. Ensure cargo check passes.",
     "blocked_by": [],
     "iterations": 2,
     "last_error": "agent hung (no heartbeat for 300s)",
-    "created": "2026-02-24T14:22:39Z"
+    "created": "2026-02-24T14:22:39Z",
+    "completed": "2026-02-24T14:38:18Z",
+    "commit": "eb0e8e3"
   },
   {
     "id": "R-009",
-    "status": "queued",
+    "status": "running",
     "prompt": "Implement file watching with auto-reload in src-tauri/src/watcher.rs. Read spec.md for requirements. Create a module that: (1) Exposes a function to start watching a file path using the `notify` crate (RecommendedWatcher). (2) On file modify/write events, debounce with 200ms, then re-read and re-render the markdown, and emit a \"file-changed\" Tauri event with the new HTML content. (3) When a new file is opened, stop watching the old file and start watching the new one. (4) Handle file deletion: emit a \"file-deleted\" event so frontend can show \"File not found\". (5) Integrate into main.rs — start the watcher in the setup closure using app handle for event emission. Use std::sync::Mutex or similar to manage watcher state. Ensure cargo check passes.",
     "blocked_by": [],
-    "iterations": 0,
+    "iterations": 2,
+    "last_error": "agent hung (no heartbeat for 300s)",
     "created": "2026-02-24T14:22:39Z"
   },
   {
