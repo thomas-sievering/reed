@@ -53,18 +53,20 @@
   },
   {
     "id": "R-011",
-    "status": "running",
+    "status": "done",
     "prompt": "Build the complete frontend UI. Read spec.md for ALL typography, theme, and layout specs. In ui/index.html: set up the document structure with a #content container, a theme toggle button (sun/moon SVG icons, fixed top-right), and a \"no file\" landing page with centered message \"Drop a markdown file here or open one from the command line\" plus an \"Open File\" button. In ui/style.css: implement BOTH dark and light themes using CSS custom properties exactly matching the spec's color tokens table. Implement all typography specs (font stacks, sizes, line heights, heading styles with bottom borders on h1/h2, blockquote styling, table styling with alternating rows, code block styling, task list checkboxes, image styling, horizontal rules). Theme toggle button should fade in on hover near top of window. Smooth 200ms transitions. Max content width 720px centered, padding as specified. In ui/main.js: (1) import { invoke } from \"@tauri-apps/api/core\" and { listen } from \"@tauri-apps/api/event\", (2) listen for \"file-opened\" and \"file-changed\" events to update #content innerHTML, (3) implement theme toggle with Ctrl/Cmd+D shortcut, (4) persist theme preference via a save_config/load_config Tauri command (or localStorage as fallback), (5) implement Ctrl/Cmd+O to trigger file open, (6) preserve scroll position by percentage on content reload, (7) implement drag-and-drop: listen for dragover/drop events, extract file path, invoke render_file command, (8) implement F5 for manual reload. Wire up the \"Open File\" button on landing page. Ensure all keyboard shortcuts from spec are handled.",
     "blocked_by": [],
     "iterations": 1,
-    "created": "2026-02-24T14:22:39Z"
+    "created": "2026-02-24T14:22:39Z",
+    "completed": "2026-02-24T14:48:23Z",
+    "commit": "a54e189"
   },
   {
     "id": "R-013",
-    "status": "queued",
+    "status": "running",
     "prompt": "Final integration and polish. Read spec.md to verify all requirements are met. (1) Ensure the Tauri window title updates to \"filename — reed\" format when files are opened. (2) Add file association config in tauri.conf.json for .md and .markdown extensions with text/markdown MIME type. (3) Test the full flow: verify cargo check passes, verify the app can be built with `cargo tauri build` (or at minimum `cargo tauri dev` compiles). (4) Make sure drag-and-drop works by checking Tauri's drag-drop permissions/config. (5) Ensure the \"no file\" landing state, file rendering, auto-reload, theme toggle, and all keyboard shortcuts work together. (6) Add Ctrl+W (close window) and Ctrl+Q (quit app) keyboard shortcuts if not already present. Fix any compilation errors or integration issues between backend and frontend.",
     "blocked_by": [],
-    "iterations": 0,
+    "iterations": 1,
     "created": "2026-02-24T14:22:39Z"
   }
 ]

@@ -88,6 +88,11 @@ function filenameFromPath(path) {
   return path.split(/[\\/]/).pop() ?? path;
 }
 
+function isMarkdownPath(path) {
+  const normalized = path.toLowerCase();
+  return normalized.endsWith(".md") || normalized.endsWith(".markdown");
+}
+
 async function setWindowTitleForPath(path) {
   const filename = filenameFromPath(path);
   try {
@@ -202,9 +207,15 @@ function registerShortcuts() {
       return;
     }
 
-    if ((cmdOrCtrl && key === "w") || (cmdOrCtrl && key === "q")) {
+    if (cmdOrCtrl && key === "w") {
       event.preventDefault();
       void appWindow.close();
+      return;
+    }
+
+    if (cmdOrCtrl && key === "q") {
+      event.preventDefault();
+      void invoke("quit_app");
       return;
     }
 
@@ -216,6 +227,20 @@ function registerShortcuts() {
 }
 
 function registerDragAndDrop() {
+  if (typeof appWindow.onDragDropEvent === "function") {
+    void appWindow.onDragDropEvent((event) => {
+      if (event.payload.type !== "drop") {
+        return;
+      }
+
+      const [path] = event.payload.paths;
+      if (typeof path !== "string" || !isMarkdownPath(path)) {
+        return;
+      }
+      void renderPath(path);
+    });
+  }
+
   window.addEventListener("dragover", (event) => {
     event.preventDefault();
   });
@@ -223,7 +248,7 @@ function registerDragAndDrop() {
   window.addEventListener("drop", (event) => {
     event.preventDefault();
     const path = extractDroppedPath(event);
-    if (!path) {
+    if (!path || !isMarkdownPath(path)) {
       return;
     }
     void renderPath(path);
