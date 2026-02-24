@@ -6,7 +6,28 @@
     <title>reed</title>
     <link rel="stylesheet" href="./style.css" />
   </head>
-  <body>
+  <body data-theme="dark">
+    <button id="theme-toggle" type="button" aria-label="Toggle theme" title="Toggle theme (Ctrl/Cmd+D)">
+      <span class="icon icon-sun" aria-hidden="true">
+        <svg viewBox="0 0 24 24" focusable="false">
+          <circle cx="12" cy="12" r="4"></circle>
+          <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path>
+        </svg>
+      </span>
+      <span class="icon icon-moon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" focusable="false">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3c-.02.17-.03.34-.03.51A8.49 8.49 0 0 0 20.49 13c.17 0 .34-.01.51-.03z"></path>
+        </svg>
+      </span>
+    </button>
+
+    <main id="content">
+      <section class="landing" aria-live="polite">
+        <p>Drop a markdown file here or open one from the command line</p>
+        <button id="open-file" type="button">Open File</button>
+      </section>
+    </main>
+
     <script type="module" src="./main.js"></script>
   </body>
 </html>

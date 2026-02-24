@@ -1,14 +1,1 @@
-feat(watcher): implement file watching with auto-reload
-
-Create src-tauri/src/watcher.rs module with notify crate integration:
-- FileWatcher struct manages RecommendedWatcher and current file path
-- watch_file() starts watching a file's parent directory
-- Debounces file events with 200ms delay
-- On modify/create events: re-renders markdown and emits 'file-changed' event
-- On remove events: emits 'file-deleted' event
-- stop_watching() stops current watcher when switching files
-- Integrate into main.rs with start_watching/stop_watching Tauri commands
-- Use Mutex<FileWatcher> as managed state
-- Thread-based event handling for async file watching
-
-cargo check passes without warnings.
+feat(ui): implement complete markdown reader frontend
