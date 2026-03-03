@@ -299,6 +299,31 @@ hr {
 .muted { color: var(--text-muted); }
 .error { color: #ef6461; }
 
+/* Status bar */
+
+#status-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 6px 20px;
+  text-align: center;
+  font-size: 0.75em;
+  color: var(--text-muted);
+  background: var(--bg);
+  border-top: 1px solid var(--border);
+  opacity: 0;
+  transition: opacity 200ms ease, background-color 200ms ease;
+  pointer-events: none;
+  z-index: 50;
+}
+
+body.near-bottom #status-bar,
+#status-bar:hover {
+  opacity: 1;
+  pointer-events: auto;
+}
+
 /* Scrollbars — thin overlay style */
 
 ::-webkit-scrollbar {

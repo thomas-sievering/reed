@@ -1,4 +1,5 @@
 use pulldown_cmark::{html, CodeBlockKind, Event, Options, Parser, Tag, TagEnd};
+use serde::Serialize;
 use std::fs;
 use syntect::highlighting::{Theme, ThemeSet};
 use syntect::html::highlighted_html_for_string;
@@ -6,7 +7,24 @@ use syntect::parsing::SyntaxSet;
 
 const LARGE_FILE_THRESHOLD_BYTES: usize = 1024 * 1024;
 
-pub fn render_markdown(path: &str) -> Result<String, String> {
+#[derive(Serialize, Clone)]
+pub struct RenderResult {
+    pub html: String,
+    pub words: usize,
+    pub chars: usize,
+    pub tokens: usize,
+}
+
+fn estimate_tokens(text: &str) -> usize {
+    // Anthropic's heuristic: ~3.5 English characters per token
+    ((text.len() as f64) / 3.5).round() as usize
+}
+
+fn count_words(text: &str) -> usize {
+    text.split_whitespace().count()
+}
+
+pub fn render_markdown(path: &str) -> Result<RenderResult, String> {
     let bytes = fs::read(path).map_err(|err| format!("Failed to read file '{}': {}", path, err))?;
     let skip_syntax_highlighting = bytes.len() > LARGE_FILE_THRESHOLD_BYTES;
 
@@ -14,16 +32,30 @@ pub fn render_markdown(path: &str) -> Result<String, String> {
         Ok(content) => content,
         Err(_) => {
             let escaped_path = escape_html(path);
-            return Ok(format!(
-                "<p class=\"error\">Could not render <code>{}</code>: file is not valid UTF-8.</p>",
-                escaped_path
-            ));
+            return Ok(RenderResult {
+                html: format!(
+                    "<p class=\"error\">Could not render <code>{}</code>: file is not valid UTF-8.</p>",
+                    escaped_path
+                ),
+                words: 0,
+                chars: 0,
+                tokens: 0,
+            });
         }
     };
 
     if markdown.trim().is_empty() {
-        return Ok("<p class=\"muted\">Empty file</p>".to_string());
+        return Ok(RenderResult {
+            html: "<p class=\"muted\">Empty file</p>".to_string(),
+            words: 0,
+            chars: 0,
+            tokens: 0,
+        });
     }
+
+    let words = count_words(&markdown);
+    let chars = markdown.len();
+    let tokens = estimate_tokens(&markdown);
 
     let mut options = Options::empty();
     options.insert(Options::ENABLE_TABLES);
@@ -78,10 +110,15 @@ pub fn render_markdown(path: &str) -> Result<String, String> {
         }
     }
 
-    Ok(format!(
-        "<div data-skip-syntax-highlighting=\"{}\">{}</div>",
-        skip_syntax_highlighting, rendered_html
-    ))
+    Ok(RenderResult {
+        html: format!(
+            "<div data-skip-syntax-highlighting=\"{}\">{}</div>",
+            skip_syntax_highlighting, rendered_html
+        ),
+        words,
+        chars,
+        tokens,
+    })
 }
 
 fn load_theme() -> Option<Theme> {

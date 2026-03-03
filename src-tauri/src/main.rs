@@ -4,22 +4,56 @@ mod markdown;
 mod watcher;
 
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
+use std::collections::BTreeMap;
 use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::sync::Mutex;
-use tauri::{AppHandle, Emitter, Manager, State, Window};
+use tauri::{AppHandle, State, Window};
 use watcher::FileWatcher;
 
+struct InitialFile(Mutex<Option<String>>);
+
+fn default_theme() -> String {
+    "dark".to_string()
+}
+
+fn default_font_size_px() -> u16 {
+    16
+}
+
+fn default_max_content_width_px() -> u16 {
+    720
+}
+
+fn default_show_status_bar() -> bool {
+    true
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(default)]
 struct AppConfig {
+    #[serde(default = "default_theme")]
     theme: String,
+    #[serde(default = "default_font_size_px")]
+    font_size_px: u16,
+    #[serde(default = "default_max_content_width_px")]
+    max_content_width_px: u16,
+    #[serde(default = "default_show_status_bar")]
+    show_status_bar: bool,
+    #[serde(flatten)]
+    extra: BTreeMap<String, Value>,
 }
 
 impl Default for AppConfig {
     fn default() -> Self {
         Self {
-            theme: "dark".to_string(),
+            theme: default_theme(),
+            font_size_px: default_font_size_px(),
+            max_content_width_px: default_max_content_width_px(),
+            show_status_bar: default_show_status_bar(),
+            extra: BTreeMap::new(),
         }
     }
 }
@@ -30,7 +64,7 @@ fn config_file_path() -> Result<PathBuf, String> {
 }
 
 #[tauri::command]
-fn render_file(path: String) -> Result<String, String> {
+fn render_file(path: String) -> Result<markdown::RenderResult, String> {
     markdown::render_markdown(&path)
 }
 
@@ -99,29 +133,23 @@ fn quit_app(app_handle: AppHandle) {
     app_handle.exit(0);
 }
 
+#[tauri::command]
+fn get_initial_file(state: State<InitialFile>) -> Option<String> {
+    state.0.lock().unwrap().take()
+}
+
 fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .manage(Mutex::new(FileWatcher::new()))
-        .setup(|app| {
+        .manage({
             let args: Vec<String> = env::args().collect();
-
-            if args.len() > 1 {
-                let file_path = &args[1];
-
-                if Path::new(file_path).exists() {
-                    if let Some(window) = app.get_webview_window("main") {
-                        let _ = window.emit("file-opened", file_path.clone());
-
-                        if let Some(filename) = Path::new(file_path).file_name() {
-                            let _ = window
-                                .set_title(&format!("{} \u{2014} reed", filename.to_string_lossy()));
-                        }
-                    }
-                }
-            }
-
-            Ok(())
+            let initial = if args.len() > 1 && Path::new(&args[1]).exists() {
+                Some(args[1].clone())
+            } else {
+                None
+            };
+            InitialFile(Mutex::new(initial))
         })
         .invoke_handler(tauri::generate_handler![
             render_file,
@@ -131,7 +159,8 @@ fn main() {
             stop_watching,
             load_config,
             save_config,
-            quit_app
+            quit_app,
+            get_initial_file
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

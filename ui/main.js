@@ -27,6 +27,7 @@ function renderLanding() {
       <button id="open-file" type="button">Open File</button>
     </section>
   `;
+  hideStatusBar();
   attachOpenButtonHandler();
 }
 
@@ -127,12 +128,31 @@ async function startWatching(path) {
   }
 }
 
+function updateStatusBar(stats) {
+  let bar = document.querySelector("#status-bar");
+  if (!bar) {
+    bar = document.createElement("div");
+    bar.id = "status-bar";
+    document.body.appendChild(bar);
+  }
+  bar.textContent = `${stats.words.toLocaleString()} words · ${stats.chars.toLocaleString()} chars · ~${stats.tokens.toLocaleString()} tokens`;
+  bar.hidden = false;
+}
+
+function hideStatusBar() {
+  const bar = document.querySelector("#status-bar");
+  if (bar) {
+    bar.hidden = true;
+  }
+}
+
 async function renderPath(path, { preserveScroll = false } = {}) {
   const previousScrollPercent = preserveScroll ? getScrollPercent() : 0;
 
-  const html = await invoke("render_file", { path });
-  content.innerHTML = html;
+  const result = await invoke("render_file", { path });
+  content.innerHTML = result.html;
   currentFilePath = path;
+  updateStatusBar(result);
 
   await setWindowTitleForPath(path);
 
@@ -217,17 +237,24 @@ function registerDragAndDrop() {
   }
 }
 
-function registerTopHoverReveal() {
+function registerHoverReveal() {
   window.addEventListener("mousemove", (event) => {
     if (event.clientY <= 90) {
       document.body.classList.add("near-top");
     } else {
       document.body.classList.remove("near-top");
     }
+
+    if (event.clientY >= window.innerHeight - 50) {
+      document.body.classList.add("near-bottom");
+    } else {
+      document.body.classList.remove("near-bottom");
+    }
   });
 
   window.addEventListener("mouseleave", () => {
     document.body.classList.remove("near-top");
+    document.body.classList.remove("near-bottom");
   });
 }
 
@@ -241,13 +268,14 @@ async function registerTauriEvents() {
   });
 
   await listen("file-changed", (event) => {
-    const html = event.payload;
-    if (typeof html !== "string") {
+    const result = event.payload;
+    if (!result || typeof result.html !== "string") {
       return;
     }
 
     const previousScrollPercent = getScrollPercent();
-    content.innerHTML = html;
+    content.innerHTML = result.html;
+    updateStatusBar(result);
     restoreScrollPercent(previousScrollPercent);
   });
 
@@ -270,9 +298,14 @@ async function init() {
 
   registerShortcuts();
   registerDragAndDrop();
-  registerTopHoverReveal();
+  registerHoverReveal();
   await registerTauriEvents();
 }
 
 renderLanding();
-void init();
+void init().then(async () => {
+  const initialFile = await invoke("get_initial_file");
+  if (initialFile) {
+    await renderPath(initialFile);
+  }
+});
