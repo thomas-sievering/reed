@@ -1,7 +1,7 @@
 ---
 name: torbjorn-inspect
-description: "Analyze torbjorn loop logs for recurring failure patterns."
-allowed-tools: Bash(torb inspect *), Bash(torbjorn inspect *), Bash(go install *)
+description: "Analyze torbjorn loop logs for recurring failure patterns. Use when user says 'inspect logs', 'check failures', or 'torbjorn inspect'."
+allowed-tools: Bash(torb inspect *), Bash(torbjorn inspect *), Bash(go install github.com/thomas-sievering/torbjorn@latest)
 ---
 
 # Torbjorn Inspect

@@ -1,13 +1,18 @@
 ---
 name: torbjorn-plan
-description: "Decompose work into torbjorn tasks. Use when user says 'plan', 'break this down', 'create tasks', 'decompose', or describes a feature to build."
+description: "Decompose work into torbjorn tasks. Use when user says 'torbjorn plan', 'break this down', 'create tasks', 'decompose', or describes a feature to build."
 argument-hint: "[goal or feature description]"
-allowed-tools: Read, Glob, Grep, Bash(torb *), Bash(torbjorn *), Bash(go install *)
+allowed-tools: Read, Glob, Grep, Bash(torb add *), Bash(torb tasks *), Bash(torb init *), Bash(torb guide *), Bash(torb plan *), Bash(torbjorn add *), Bash(torbjorn tasks *), Bash(torbjorn init *), Bash(torbjorn guide *), Bash(torbjorn plan *), Bash(go install github.com/thomas-sievering/torbjorn@latest)
 ---
 
 # Torbjorn Plan — Task Decomposition
 
 You are a task decomposition agent. Your job is to analyze a goal/feature request and break it into a sequence of small, focused tasks.
+
+## Resolving the Goal
+
+1. **If `$ARGUMENTS` is provided**: Use it as the goal.
+2. **If no arguments**: Read the recent conversation for context. Look at the last few user messages to infer what they want decomposed. If ambiguous, ask.
 
 ## Instructions
 
@@ -19,9 +24,11 @@ You are a task decomposition agent. Your job is to analyze a goal/feature reques
 
 4. **Initialize if needed**: Run `torbjorn init` if `.torbjorn/` doesn't exist.
 
-5. **Add tasks**: ALWAYS use `torbjorn add "prompt"` for each task (never `bd create` directly — torbjorn add sets required labels). For bulk import, write a batch file and use `torbjorn plan --import <file>`.
+5. **Dedup check**: Before adding tasks, run `torbjorn tasks --full` to see existing beads. Do NOT add tasks that duplicate or substantially overlap with existing open/in_progress beads. If a match is found, tell the user which existing bead covers it and skip it.
 
-6. **After adding tasks**: Show the user a summary and ask: "Start the loop now (`/torbjorn-run`), or review tasks first?"
+6. **Add tasks**: ALWAYS use `torbjorn add "prompt"` for each task (never `bd create` directly — torbjorn add sets required labels). For bulk import, write a batch file and use `torbjorn plan --import <file>`.
+
+7. **After adding tasks**: Show the user a summary table (task ID, prompt summary, priority) and ask: "Start the loop now (`/torbjorn-run`), or review tasks first?"
 
 If torbjorn is not installed, install it:
 ```

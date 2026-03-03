@@ -14,3 +14,8 @@
 - [2026-03-03T16:40:48Z] reed-bm5 done: "Add a Tab-key heading navigation overlay to the markdown reader.
 
 ## What to build" (model: codex, 0 iterations)
+
+<!-- raw -->
+- [2026-03-03T17:01:46Z] reed-9ug done: "Build a settings dialog UI and wire settings to apply live.
+
+## Context" (model: codex, 0 iterations)

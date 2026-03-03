@@ -12,7 +12,7 @@ Detect the project's dev server, start it if needed, and cache the result in `.d
 
 ## Active ports
 
-!`lsof -iTCP -sTCP:LISTEN -P -n 2>/dev/null | grep -E ':(3000|3001|4173|4200|5173|5174|8080|8081|8888)\b' | head -10 || echo "No dev servers detected"`
+!`{ lsof -iTCP -sTCP:LISTEN -P -n 2>/dev/null || netstat -ano 2>/dev/null | grep LISTENING; } | grep -iE ':(3000|3001|4173|4200|5173|5174|8080|8081|8888)' | head -10 || echo "No dev servers detected"`
 
 ## Project info
 
@@ -22,13 +22,15 @@ Detect the project's dev server, start it if needed, and cache the result in `.d
 
 ## Detection logic
 
+> **Cross-platform**: `lsof` is macOS/Linux only. On Windows, use `netstat -ano | grep ":<port>.*LISTENING"` as a fallback.
+
 Follow this order. Stop at the first success.
 
 ### 1. Cached config exists and server is live
 
 If `.dev-server.json` exists, read the `port` and verify it's still listening:
 ```bash
-lsof -iTCP:<port> -sTCP:LISTEN -P -n 2>/dev/null
+lsof -iTCP:<port> -sTCP:LISTEN -P -n 2>/dev/null || netstat -ano 2>/dev/null | grep ":<port>.*LISTENING"
 ```
 If listening → done, config is valid.
 If not listening → config is stale, continue to step 2.

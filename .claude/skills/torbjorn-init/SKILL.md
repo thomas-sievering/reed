@@ -1,7 +1,7 @@
 ---
 name: torbjorn-init
 description: "Initialize torbjorn in the current project. Use when user says 'torbjorn init', 'init torbjorn', or 'set up torbjorn'."
-allowed-tools: Bash(torb *), Bash(torbjorn *), Bash(go install *)
+allowed-tools: Bash(torb init *), Bash(torbjorn init *), Bash(go install github.com/thomas-sievering/torbjorn@latest)
 ---
 
 # Torbjorn Init

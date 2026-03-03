@@ -1,8 +1,8 @@
 ---
 name: torbjorn-add
-description: "Add a single task to the torbjorn queue."
+description: "Add a single task to the torbjorn queue. Use when user says 'add task' or 'torbjorn add'."
 argument-hint: "[task description]"
-allowed-tools: Bash(torb *), Bash(torbjorn *), Bash(go install *)
+allowed-tools: Bash(torb add *), Bash(torbjorn add *), Bash(go install github.com/thomas-sievering/torbjorn@latest), Bash(torbjorn tasks *)
 ---
 
 # Torbjorn Add
