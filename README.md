@@ -31,6 +31,7 @@ Or launch without arguments to get a drop zone / file picker.
 | `Ctrl/Cmd + W` | Close window |
 | `Ctrl/Cmd + Q` | Quit |
 | `F5` | Reload |
+| `Tab` / `Shift+Tab` | Jump between headings (shows overlay) |
 
 ## Build
 

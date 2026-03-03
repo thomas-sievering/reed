@@ -118,6 +118,7 @@ Two themes: **dark** (default) and **light**.
 | `Ctrl/Cmd + W`       | Close window        |
 | `Ctrl/Cmd + Q`       | Quit app            |
 | `F5`                  | Manual reload       |
+| `Tab` / `Shift+Tab`  | Navigate headings with transient overlay |
 
 ### Edge Cases
 

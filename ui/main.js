@@ -10,6 +10,14 @@ const themeToggle = document.querySelector("#theme-toggle");
 const appWindow = getCurrentWindow();
 
 let currentFilePath = null;
+const headingNavigation = {
+  headings: [],
+  selectedIndex: -1,
+  hideTimer: null,
+  overlay: null,
+  list: null,
+  label: null,
+};
 
 function escapeHtml(value) {
   return value
@@ -21,12 +29,14 @@ function escapeHtml(value) {
 }
 
 function renderLanding() {
+  currentFilePath = null;
   content.innerHTML = `
     <section class="landing" aria-live="polite">
       <p>Drop a markdown file here or open one from the command line</p>
       <button id="open-file" type="button">Open File</button>
     </section>
   `;
+  refreshHeadingNavigation();
   hideStatusBar();
   attachOpenButtonHandler();
 }
@@ -146,12 +156,156 @@ function hideStatusBar() {
   }
 }
 
+function ensureHeadingOverlay() {
+  if (headingNavigation.overlay) {
+    return;
+  }
+
+  const overlay = document.createElement("section");
+  overlay.id = "heading-nav-overlay";
+  overlay.hidden = true;
+  overlay.setAttribute("aria-live", "polite");
+  overlay.setAttribute("aria-label", "Heading navigation");
+
+  const label = document.createElement("p");
+  label.className = "heading-nav-label";
+  overlay.appendChild(label);
+
+  const list = document.createElement("ul");
+  list.className = "heading-nav-list";
+  overlay.appendChild(list);
+
+  document.body.appendChild(overlay);
+  headingNavigation.overlay = overlay;
+  headingNavigation.list = list;
+  headingNavigation.label = label;
+}
+
+function hideHeadingOverlay() {
+  const overlay = headingNavigation.overlay;
+  if (!overlay) {
+    return;
+  }
+
+  overlay.classList.remove("visible");
+  overlay.hidden = true;
+}
+
+function scheduleOverlayHide() {
+  if (headingNavigation.hideTimer !== null) {
+    window.clearTimeout(headingNavigation.hideTimer);
+  }
+
+  headingNavigation.hideTimer = window.setTimeout(() => {
+    hideHeadingOverlay();
+    headingNavigation.hideTimer = null;
+  }, 1500);
+}
+
+function refreshHeadingNavigation() {
+  ensureHeadingOverlay();
+  headingNavigation.headings = Array.from(
+    content.querySelectorAll("h1, h2, h3, h4, h5, h6"),
+  )
+    .map((element) => {
+      const text = element.textContent?.trim();
+      if (!text) {
+        return null;
+      }
+
+      return {
+        element,
+        level: Number.parseInt(element.tagName.slice(1), 10),
+        text,
+      };
+    })
+    .filter((heading) => heading !== null);
+
+  if (headingNavigation.headings.length === 0) {
+    headingNavigation.selectedIndex = -1;
+    hideHeadingOverlay();
+    return;
+  }
+
+  if (headingNavigation.selectedIndex >= headingNavigation.headings.length) {
+    headingNavigation.selectedIndex = 0;
+  }
+}
+
+function renderHeadingOverlay() {
+  const { list, label, headings, selectedIndex } = headingNavigation;
+  if (!list || !label || headings.length === 0) {
+    return;
+  }
+
+  list.replaceChildren();
+  label.textContent = "Tab/Shift+Tab to navigate headings";
+
+  headings.forEach((heading, index) => {
+    const item = document.createElement("li");
+    item.className = "heading-nav-item";
+    if (index === selectedIndex) {
+      item.classList.add("active");
+    }
+
+    const badge = document.createElement("span");
+    badge.className = "heading-level";
+    badge.textContent = `H${heading.level}`;
+    item.appendChild(badge);
+
+    const text = document.createElement("span");
+    text.className = "heading-text";
+    text.textContent = heading.text;
+    item.appendChild(text);
+
+    list.appendChild(item);
+  });
+}
+
+function showHeadingOverlay() {
+  const overlay = headingNavigation.overlay;
+  if (!overlay) {
+    return;
+  }
+
+  overlay.hidden = false;
+  requestAnimationFrame(() => {
+    overlay.classList.add("visible");
+  });
+}
+
+function navigateHeadings(direction) {
+  if (!currentFilePath) {
+    return false;
+  }
+
+  const total = headingNavigation.headings.length;
+  if (total === 0) {
+    return false;
+  }
+
+  if (headingNavigation.selectedIndex === -1) {
+    headingNavigation.selectedIndex = direction > 0 ? 0 : total - 1;
+  } else {
+    const next = headingNavigation.selectedIndex + direction;
+    headingNavigation.selectedIndex = (next + total) % total;
+  }
+
+  const currentHeading = headingNavigation.headings[headingNavigation.selectedIndex];
+  currentHeading.element.scrollIntoView({ behavior: "smooth", block: "start" });
+  renderHeadingOverlay();
+  showHeadingOverlay();
+  scheduleOverlayHide();
+  return true;
+}
+
 async function renderPath(path, { preserveScroll = false } = {}) {
   const previousScrollPercent = preserveScroll ? getScrollPercent() : 0;
 
   const result = await invoke("render_file", { path });
   content.innerHTML = result.html;
   currentFilePath = path;
+  refreshHeadingNavigation();
   updateStatusBar(result);
 
   await setWindowTitleForPath(path);
@@ -182,6 +336,18 @@ async function manualReload() {
 
 function registerShortcuts() {
   window.addEventListener("keydown", (event) => {
+    if (event.key === "Tab" && !event.metaKey && !event.ctrlKey && !event.altKey) {
+      const direction = event.shiftKey ? -1 : 1;
+      if (navigateHeadings(direction)) {
+        event.preventDefault();
+        return;
+      }
+    }
+
+    if (event.key === "Escape") {
+      hideHeadingOverlay();
+    }
+
     const cmdOrCtrl = event.metaKey || event.ctrlKey;
     const key = event.key.toLowerCase();
 
@@ -275,6 +441,7 @@ async function registerTauriEvents() {
 
     const previousScrollPercent = getScrollPercent();
     content.innerHTML = result.html;
+    refreshHeadingNavigation();
     updateStatusBar(result);
     restoreScrollPercent(previousScrollPercent);
   });
@@ -284,11 +451,13 @@ async function registerTauriEvents() {
     const displayPath = typeof path === "string" ? path : "the current file";
     const previousScrollPercent = getScrollPercent();
     content.innerHTML = `<p class="error">File not found: <code>${escapeHtml(displayPath)}</code></p>`;
+    refreshHeadingNavigation();
     restoreScrollPercent(previousScrollPercent);
   });
 }
 
 async function init() {
+  ensureHeadingOverlay();
   const preferredTheme = await loadThemePreference();
   setTheme(preferredTheme);
 
