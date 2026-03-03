@@ -2,3 +2,7 @@ node_modules/
 target/
 dist/
 .torbjorn/
+
+# Dolt database files (added by bd init)
+.dolt/
+*.db
