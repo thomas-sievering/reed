@@ -6,6 +6,8 @@
   --accent: #8aa4ff;
   --border: #2a2a45;
   --code-bg: #16162a;
+  --font-size-px: 16px;
+  --content-max-width: 720px;
 }
 
 body[data-theme="light"] {
@@ -32,7 +34,7 @@ body {
   background-color: var(--bg);
   color: var(--text);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
-  font-size: 16px;
+  font-size: var(--font-size-px);
   line-height: 1.75;
   transition: background-color 200ms ease, color 200ms ease;
   -webkit-font-smoothing: antialiased;
@@ -41,7 +43,7 @@ body {
 
 #content {
   width: 100%;
-  max-width: 720px;
+  max-width: var(--content-max-width);
   margin: 0 auto;
   padding: 48px 32px 96px;
 }
@@ -81,12 +83,12 @@ body {
   border-color: var(--text-muted);
 }
 
-/* Theme toggle */
+/* Top controls */
 
-#theme-toggle {
+#theme-toggle,
+#settings-toggle {
   position: fixed;
   top: 14px;
-  right: 14px;
   z-index: 100;
   width: 32px;
   height: 32px;
@@ -102,18 +104,31 @@ body {
   transition: opacity 200ms ease, background-color 150ms ease, color 150ms ease;
 }
 
+#theme-toggle {
+  right: 14px;
+}
+
+#settings-toggle {
+  right: 54px;
+}
+
 body.near-top #theme-toggle,
+body.near-top #settings-toggle,
 #theme-toggle:hover,
-#theme-toggle:focus-visible {
+#theme-toggle:focus-visible,
+#settings-toggle:hover,
+#settings-toggle:focus-visible {
   opacity: 1;
 }
 
-#theme-toggle:hover {
+#theme-toggle:hover,
+#settings-toggle:hover {
   background: var(--bg-secondary);
   color: var(--text);
 }
 
-#theme-toggle:focus-visible {
+#theme-toggle:focus-visible,
+#settings-toggle:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
   opacity: 1;
@@ -139,6 +154,11 @@ body.near-top #theme-toggle,
 .icon-moon svg {
   fill: currentColor;
   stroke: none;
+}
+
+.icon-gear svg {
+  fill: none;
+  stroke: currentColor;
 }
 
 body[data-theme="dark"] .icon-sun { opacity: 1; }
@@ -324,7 +344,93 @@ body.near-bottom #status-bar,
   pointer-events: auto;
 }
 
-/* Scrollbars — thin overlay style */
+body.hide-status-bar #status-bar {
+  display: none;
+}
+
+/* Settings dialog */
+
+#settings-dialog {
+  width: min(420px, calc(100vw - 32px));
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 0;
+  color: var(--text);
+  background: var(--bg);
+  box-shadow: 0 24px 48px rgb(0 0 0 / 34%);
+}
+
+#settings-dialog::backdrop {
+  background: rgb(0 0 0 / 45%);
+  backdrop-filter: blur(1px);
+}
+
+#settings-form {
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+}
+
+.settings-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.settings-header h2 {
+  margin: 0;
+  font-size: 1.15em;
+  border: 0;
+  padding: 0;
+}
+
+#settings-close {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-muted);
+  padding: 6px 10px;
+  cursor: pointer;
+  font: inherit;
+}
+
+#settings-close:hover,
+#settings-close:focus-visible {
+  color: var(--text);
+  border-color: var(--text-muted);
+}
+
+.settings-field {
+  display: grid;
+  gap: 6px;
+  color: var(--text-muted);
+}
+
+.settings-field > span {
+  font-size: 0.9em;
+}
+
+.settings-field input[type="range"],
+.settings-field select {
+  width: 100%;
+}
+
+.settings-field output {
+  font-size: 0.82em;
+}
+
+.settings-checkbox {
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 10px;
+}
+
+.settings-checkbox > span {
+  font-size: 0.95em;
+}
+
+/* Scrollbars - thin overlay style */
 
 ::-webkit-scrollbar {
   width: 6px;
@@ -429,7 +535,8 @@ body.near-bottom #status-bar,
     padding-right: 20px;
   }
 
-  #theme-toggle {
+  #theme-toggle,
+  #settings-toggle {
     opacity: 1;
   }
 }

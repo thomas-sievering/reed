@@ -3,13 +3,28 @@ const { listen } = window.__TAURI__.event;
 const { getCurrentWindow } = window.__TAURI__.window;
 
 const THEME_KEY = "reed-theme";
-const DEFAULT_THEME = "dark";
+const DEFAULT_CONFIG = Object.freeze({
+  theme: "dark",
+  font_size_px: 16,
+  max_content_width_px: 720,
+  show_status_bar: true,
+});
 
 const content = document.querySelector("#content");
 const themeToggle = document.querySelector("#theme-toggle");
+const settingsToggle = document.querySelector("#settings-toggle");
+const settingsDialog = document.querySelector("#settings-dialog");
+const settingsClose = document.querySelector("#settings-close");
+const themeField = document.querySelector("#setting-theme");
+const fontSizeField = document.querySelector("#setting-font-size");
+const fontSizeValue = document.querySelector("#setting-font-size-value");
+const maxWidthField = document.querySelector("#setting-max-width");
+const maxWidthValue = document.querySelector("#setting-max-width-value");
+const showStatusField = document.querySelector("#setting-show-status");
 const appWindow = getCurrentWindow();
 
 let currentFilePath = null;
+let currentConfig = { ...DEFAULT_CONFIG };
 const headingNavigation = {
   headings: [],
   selectedIndex: -1,
@@ -60,39 +75,93 @@ function setTheme(theme) {
   document.body.dataset.theme = theme;
 }
 
-async function loadThemePreference() {
-  try {
-    const loaded = await invoke("load_config");
-    if (loaded?.theme === "light" || loaded?.theme === "dark") {
-      return loaded.theme;
-    }
-  } catch {
-    // localStorage fallback
-  }
-
-  const local = localStorage.getItem(THEME_KEY);
-  if (local === "light" || local === "dark") {
-    return local;
-  }
-
-  return DEFAULT_THEME;
+function clamp(value, min, max) {
+  return Math.min(Math.max(value, min), max);
 }
 
-async function saveThemePreference(theme) {
-  localStorage.setItem(THEME_KEY, theme);
+function normalizeTheme(theme) {
+  return theme === "light" ? "light" : "dark";
+}
+
+function normalizeConfig(config) {
+  const parsedFont = Number.parseInt(`${config?.font_size_px ?? DEFAULT_CONFIG.font_size_px}`, 10);
+  const parsedWidth = Number.parseInt(
+    `${config?.max_content_width_px ?? DEFAULT_CONFIG.max_content_width_px}`,
+    10,
+  );
+
+  return {
+    theme: normalizeTheme(config?.theme),
+    font_size_px: clamp(Number.isNaN(parsedFont) ? DEFAULT_CONFIG.font_size_px : parsedFont, 12, 24),
+    max_content_width_px: clamp(
+      Number.isNaN(parsedWidth) ? DEFAULT_CONFIG.max_content_width_px : parsedWidth,
+      560,
+      1100,
+    ),
+    show_status_bar: typeof config?.show_status_bar === "boolean"
+      ? config.show_status_bar
+      : DEFAULT_CONFIG.show_status_bar,
+  };
+}
+
+function applyConfig(config) {
+  setTheme(config.theme);
+  document.documentElement.style.setProperty("--font-size-px", `${config.font_size_px}px`);
+  document.documentElement.style.setProperty("--content-max-width", `${config.max_content_width_px}px`);
+  document.body.classList.toggle("hide-status-bar", !config.show_status_bar);
+}
+
+function updateSettingsSummary() {
+  fontSizeValue.textContent = `${currentConfig.font_size_px}px`;
+  maxWidthValue.textContent = `${currentConfig.max_content_width_px}px`;
+}
+
+function syncSettingsFields() {
+  themeField.value = currentConfig.theme;
+  fontSizeField.value = `${currentConfig.font_size_px}`;
+  maxWidthField.value = `${currentConfig.max_content_width_px}`;
+  showStatusField.checked = currentConfig.show_status_bar;
+  updateSettingsSummary();
+}
+
+async function persistConfig(config) {
+  localStorage.setItem(THEME_KEY, config.theme);
 
   try {
-    await invoke("save_config", { config: { theme } });
+    await invoke("save_config", { config });
   } catch {
-    // localStorage fallback
+    // localStorage fallback for theme only
+  }
+}
+
+async function setConfig(nextConfig, { persist = true, syncFields = true } = {}) {
+  currentConfig = normalizeConfig(nextConfig);
+  applyConfig(currentConfig);
+
+  if (syncFields) {
+    syncSettingsFields();
+  }
+
+  if (persist) {
+    await persistConfig(currentConfig);
+  }
+}
+
+async function loadInitialConfig() {
+  try {
+    const loaded = await invoke("load_config");
+    return normalizeConfig(loaded);
+  } catch {
+    return normalizeConfig({
+      ...DEFAULT_CONFIG,
+      theme: normalizeTheme(localStorage.getItem(THEME_KEY)),
+    });
   }
 }
 
 async function toggleTheme() {
-  const current = document.body.dataset.theme === "light" ? "light" : "dark";
-  const next = current === "dark" ? "light" : "dark";
-  setTheme(next);
-  await saveThemePreference(next);
+  const nextTheme = currentConfig.theme === "dark" ? "light" : "dark";
+  await setConfig({ ...currentConfig, theme: nextTheme });
 }
 
 function filenameFromPath(path) {
@@ -139,13 +208,18 @@ async function startWatching(path) {
 }
 
 function updateStatusBar(stats) {
+  if (!currentConfig.show_status_bar) {
+    return;
+  }
+
   let bar = document.querySelector("#status-bar");
   if (!bar) {
     bar = document.createElement("div");
     bar.id = "status-bar";
     document.body.appendChild(bar);
   }
-  bar.textContent = `${stats.words.toLocaleString()} words · ${stats.chars.toLocaleString()} chars · ~${stats.tokens.toLocaleString()} tokens`;
+
+  bar.textContent = `${stats.words.toLocaleString()} words - ${stats.chars.toLocaleString()} chars - ~${stats.tokens.toLocaleString()} tokens`;
   bar.hidden = false;
 }
 
@@ -334,8 +408,89 @@ async function manualReload() {
   await renderPath(currentFilePath, { preserveScroll: true });
 }
 
+function openSettingsDialog() {
+  if (settingsDialog.open) {
+    return;
+  }
+  syncSettingsFields();
+  settingsDialog.showModal();
+}
+
+function closeSettingsDialog() {
+  if (!settingsDialog.open) {
+    return;
+  }
+  settingsDialog.close();
+}
+
+function registerSettings() {
+  settingsToggle.addEventListener("click", () => {
+    openSettingsDialog();
+  });
+
+  settingsClose.addEventListener("click", () => {
+    closeSettingsDialog();
+  });
+
+  settingsDialog.addEventListener("click", (event) => {
+    const rect = settingsDialog.getBoundingClientRect();
+    const inside =
+      event.clientX >= rect.left
+      && event.clientX <= rect.right
+      && event.clientY >= rect.top
+      && event.clientY <= rect.bottom;
+
+    if (!inside) {
+      closeSettingsDialog();
+    }
+  });
+
+  themeField.addEventListener("change", () => {
+    void setConfig({ ...currentConfig, theme: normalizeTheme(themeField.value) }, { syncFields: false });
+  });
+
+  fontSizeField.addEventListener("input", () => {
+    const value = Number.parseInt(fontSizeField.value, 10);
+    void setConfig({ ...currentConfig, font_size_px: value }, { syncFields: false });
+    updateSettingsSummary();
+  });
+
+  maxWidthField.addEventListener("input", () => {
+    const value = Number.parseInt(maxWidthField.value, 10);
+    void setConfig({ ...currentConfig, max_content_width_px: value }, { syncFields: false });
+    updateSettingsSummary();
+  });
+
+  showStatusField.addEventListener("change", () => {
+    void setConfig({ ...currentConfig, show_status_bar: showStatusField.checked }, { syncFields: false });
+  });
+}
+
 function registerShortcuts() {
   window.addEventListener("keydown", (event) => {
+    const cmdOrCtrl = event.metaKey || event.ctrlKey;
+    const key = event.key.toLowerCase();
+    const settingsOpen = settingsDialog.open;
+
+    if (event.key === "Escape") {
+      if (settingsOpen) {
+        event.preventDefault();
+        closeSettingsDialog();
+        return;
+      }
+      hideHeadingOverlay();
+    }
+
+    if (cmdOrCtrl && key === ",") {
+      event.preventDefault();
+      openSettingsDialog();
+      return;
+    }
+
+    if (settingsOpen) {
+      return;
+    }
+
     if (event.key === "Tab" && !event.metaKey && !event.ctrlKey && !event.altKey) {
       const direction = event.shiftKey ? -1 : 1;
       if (navigateHeadings(direction)) {
@@ -343,13 +498,6 @@ function registerShortcuts() {
         return;
       }
     }
-
-    if (event.key === "Escape") {
-      hideHeadingOverlay();
-    }
-
-    const cmdOrCtrl = event.metaKey || event.ctrlKey;
-    const key = event.key.toLowerCase();
 
     if (cmdOrCtrl && key === "d") {
       event.preventDefault();
@@ -458,13 +606,14 @@ async function registerTauriEvents() {
 
 async function init() {
   ensureHeadingOverlay();
-  const preferredTheme = await loadThemePreference();
-  setTheme(preferredTheme);
+  const loadedConfig = await loadInitialConfig();
+  await setConfig(loadedConfig, { persist: false });
 
   themeToggle.addEventListener("click", () => {
     void toggleTheme();
   });
 
+  registerSettings();
   registerShortcuts();
   registerDragAndDrop();
   registerHoverReveal();

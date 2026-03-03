@@ -20,6 +20,19 @@
         </svg>
       </span>
     </button>
+    <button
+      id="settings-toggle"
+      type="button"
+      aria-label="Open settings"
+      title="Open settings (Ctrl/Cmd+,)"
+    >
+      <span class="icon icon-gear" aria-hidden="true">
+        <svg viewBox="0 0 24 24" focusable="false">
+          <path d="M19.14 12.94a7.9 7.9 0 0 0 .05-.94 7.9 7.9 0 0 0-.05-.94l2.03-1.58a.5.5 0 0 0 .12-.64l-1.92-3.32a.5.5 0 0 0-.6-.22l-2.39.96a7.45 7.45 0 0 0-1.63-.94l-.36-2.54a.5.5 0 0 0-.5-.42h-3.84a.5.5 0 0 0-.5.42l-.36 2.54c-.58.22-1.13.53-1.63.94l-2.39-.96a.5.5 0 0 0-.6.22L2.71 8.84a.5.5 0 0 0 .12.64l2.03 1.58a7.9 7.9 0 0 0-.05.94 7.9 7.9 0 0 0 .05.94l-2.03 1.58a.5.5 0 0 0-.12.64l1.92 3.32a.5.5 0 0 0 .6.22l2.39-.96c.5.41 1.05.72 1.63.94l.36 2.54a.5.5 0 0 0 .5.42h3.84a.5.5 0 0 0 .5-.42l.36-2.54c.58-.22 1.13-.53 1.63-.94l2.39.96a.5.5 0 0 0 .6-.22l1.92-3.32a.5.5 0 0 0-.12-.64l-2.03-1.58z"></path>
+          <circle cx="12" cy="12" r="3.2"></circle>
+        </svg>
+      </span>
+    </button>
 
     <main id="content">
       <section class="landing" aria-live="polite">
@@ -27,6 +40,39 @@
         <button id="open-file" type="button">Open File</button>
       </section>
     </main>
+    <dialog id="settings-dialog" aria-labelledby="settings-title">
+      <form id="settings-form" method="dialog">
+        <header class="settings-header">
+          <h2 id="settings-title">Settings</h2>
+          <button id="settings-close" type="button" aria-label="Close settings">Close</button>
+        </header>
+
+        <label class="settings-field" for="setting-theme">
+          <span>Theme</span>
+          <select id="setting-theme" name="theme">
+            <option value="dark">Dark</option>
+            <option value="light">Light</option>
+          </select>
+        </label>
+
+        <label class="settings-field" for="setting-font-size">
+          <span>Font size</span>
+          <input id="setting-font-size" name="font_size_px" type="range" min="12" max="24" step="1" />
+          <output id="setting-font-size-value" for="setting-font-size">16px</output>
+        </label>
+
+        <label class="settings-field" for="setting-max-width">
+          <span>Content width</span>
+          <input id="setting-max-width" name="max_content_width_px" type="range" min="560" max="1100" step="10" />
+          <output id="setting-max-width-value" for="setting-max-width">720px</output>
+        </label>
+
+        <label class="settings-field settings-checkbox" for="setting-show-status">
+          <input id="setting-show-status" name="show_status_bar" type="checkbox" />
+          <span>Show status bar</span>
+        </label>
+      </form>
+    </dialog>
 
     <script src="./main.js" defer></script>
   </body>
