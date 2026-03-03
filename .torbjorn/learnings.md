@@ -19,3 +19,6 @@
 - [2026-03-03T17:01:46Z] reed-9ug done: "Build a settings dialog UI and wire settings to apply live.
 
 ## Context" (model: codex, 0 iterations)
+
+<!-- raw -->
+- [2026-03-03T19:22:47Z] reed-7um done: "Fix the light/dark mode dropdown in settings - it looks bad" (model: codex, 0 iterations)

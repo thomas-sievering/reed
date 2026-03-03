@@ -3,3 +3,4 @@
 {"task_id":"reed-bm5","status":"done","prompt":"Add a Tab-key heading navigation overlay to the markdown reader.\n\n## What to build","model":"codex","iterations":0,"commit":"20a979a","error":"","output_tail":"","timestamp":"2026-03-03T16:40:48Z"}
 {"task_id":"reed-9ug","status":"stuck","prompt":"Build a settings dialog UI and wire settings to apply live.\n\n## Context","model":"codex","iterations":0,"commit":"","error":"stopped","output_tail":"","timestamp":"2026-03-03T16:53:22Z"}
 {"task_id":"reed-9ug","status":"done","prompt":"Build a settings dialog UI and wire settings to apply live.\n\n## Context","model":"codex","iterations":0,"commit":"64e54ff","error":"","output_tail":"","timestamp":"2026-03-03T17:01:46Z"}
+{"task_id":"reed-7um","status":"done","prompt":"Fix the light/dark mode dropdown in settings - it looks bad","model":"codex","iterations":0,"commit":"c4c3fbe","error":"","output_tail":"","timestamp":"2026-03-03T19:22:47Z"}
